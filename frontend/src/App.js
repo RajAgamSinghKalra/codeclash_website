@@ -8,6 +8,7 @@ const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
 // Zustand store for global state
 const useStore = create((set, get) => ({
   isDetecting: false,
+  isDarkMode: true,
   settings: {
     confidence: 0.5,
     resolution: '640x480',
@@ -16,12 +17,37 @@ const useStore = create((set, get) => ({
   detections: [],
   diagnostics: [],
   equipment: [
-    { id: 1, name: 'Fire Extinguisher', class: 0, criticality: 'High', description: 'Emergency fire suppression system', status: 'operational', quantity: 5 },
-    { id: 2, name: 'Tool Box', class: 1, criticality: 'Medium', description: 'Maintenance and repair equipment', status: 'operational', quantity: 12 },
-    { id: 3, name: 'Oxygen Tank', class: 2, criticality: 'Critical', description: 'Life support oxygen supply', status: 'maintenance', quantity: 8 }
+    { 
+      id: 1, 
+      name: 'Fire Extinguisher', 
+      class: 0, 
+      description: 'Emergency fire suppression system', 
+      status: 'operational', 
+      quantity: 5,
+      image: 'https://images.unsplash.com/photo-1496745109441-36ea45fed379?w=300&h=200&fit=crop'
+    },
+    { 
+      id: 2, 
+      name: 'Tool Box', 
+      class: 1, 
+      description: 'Maintenance and repair equipment', 
+      status: 'operational', 
+      quantity: 12,
+      image: 'https://images.unsplash.com/photo-1558906050-d6d6aa390fd3?w=300&h=200&fit=crop'
+    },
+    { 
+      id: 3, 
+      name: 'Oxygen Tank', 
+      class: 2, 
+      description: 'Life support oxygen supply', 
+      status: 'maintenance', 
+      quantity: 8,
+      image: 'https://images.unsplash.com/photo-1585960410426-86a4b41a34f3?w=300&h=200&fit=crop'
+    }
   ],
   
   setDetecting: (status) => set({ isDetecting: status }),
+  toggleTheme: () => set(state => ({ isDarkMode: !state.isDarkMode })),
   updateSettings: (newSettings) => set(state => ({ settings: { ...state.settings, ...newSettings } })),
   addDetection: (detection) => set(state => ({ 
     detections: [detection, ...state.detections.slice(0, 49)],
@@ -38,8 +64,29 @@ const useStore = create((set, get) => ({
     equipment: state.equipment.map(item => 
       item.id === id ? { ...item, quantity: Math.max(0, quantity) } : item
     )
+  })),
+  toggleEquipmentStatus: (id) => set(state => ({
+    equipment: state.equipment.map(item => 
+      item.id === id ? { 
+        ...item, 
+        status: item.status === 'operational' ? 'maintenance' : 'operational' 
+      } : item
+    )
   }))
 }));
+
+// Parallax background hook
+const useParallax = () => {
+  const [scrollY, setScrollY] = useState(0);
+  
+  useEffect(() => {
+    const handleScroll = () => setScrollY(window.scrollY);
+    window.addEventListener('scroll', handleScroll);
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
+  
+  return scrollY;
+};
 
 // Scroll-based Earth rotation hook
 const useScrollRotation = () => {
@@ -48,7 +95,7 @@ const useScrollRotation = () => {
   useEffect(() => {
     const handleScroll = () => {
       const scrollPercent = window.scrollY / (document.documentElement.scrollHeight - window.innerHeight);
-      setRotation(scrollPercent * 360 * 0.2); // Very slow rotation
+      setRotation(scrollPercent * 360 * 0.3); // Smooth rotation
     };
     
     window.addEventListener('scroll', handleScroll);
@@ -112,6 +159,57 @@ const MetricSlider = ({ label, value, max = 100, color = '#2EFFFF', delay = 0 })
             boxShadow: `0 0 20px ${color}40`
           }}
         />
+      </div>
+    </div>
+  );
+};
+
+// Theme Toggle Component
+const ThemeToggle = () => {
+  const { isDarkMode, toggleTheme } = useStore();
+  
+  return (
+    <button className="theme-toggle" onClick={toggleTheme}>
+      <div className={`toggle-slider ${isDarkMode ? 'dark' : 'light'}`}>
+        <span className="toggle-icon">
+          {isDarkMode ? '🌙' : '☀️'}
+        </span>
+      </div>
+    </button>
+  );
+};
+
+// Parallax Background Component
+const ParallaxBackground = () => {
+  const scrollY = useParallax();
+  const earthRotation = useScrollRotation();
+  
+  return (
+    <div className="parallax-background">
+      <div 
+        className="stars-layer"
+        style={{ 
+          transform: `translateY(${scrollY * 0.5}px)` 
+        }}
+      />
+      <div 
+        className="earth-container"
+        style={{ 
+          transform: `translateY(${scrollY * 0.3}px)`
+        }}
+      >
+        <div 
+          className="earth-rotation"
+          style={{ 
+            transform: `rotate(${earthRotation}deg)` 
+          }}
+        >
+          <img 
+            src="https://images.unsplash.com/photo-1564053489984-317bbd824340?w=1200&h=1200&fit=crop" 
+            alt="Earth from space"
+            className="earth-image"
+          />
+        </div>
       </div>
     </div>
   );
@@ -330,7 +428,7 @@ const SettingsModal = ({ isOpen, onClose }) => {
 
 // Equipment Library Component
 const EquipmentLibrary = () => {
-  const { equipment, updateEquipmentQuantity } = useStore();
+  const { equipment, updateEquipmentQuantity, toggleEquipmentStatus } = useStore();
   const [searchTerm, setSearchTerm] = useState('');
 
   const filteredEquipment = equipment.filter(item =>
@@ -357,16 +455,18 @@ const EquipmentLibrary = () => {
             whileHover={{ scale: 1.05, rotateY: 5 }}
             className="equipment-card"
           >
-            <div className="equipment-image"></div>
+            <div className="equipment-image">
+              <img src={item.image} alt={item.name} className="equipment-photo" />
+            </div>
             <h3>{item.name}</h3>
             <p>{item.description}</p>
             <div className="equipment-status">
-              <span className={`criticality ${item.criticality.toLowerCase()}`}>
-                {item.criticality}
-              </span>
-              <span className={`status ${item.status}`}>
-                {item.status}
-              </span>
+              <button 
+                onClick={() => toggleEquipmentStatus(item.id)}
+                className={`status-toggle ${item.status}`}
+              >
+                {item.status === 'operational' ? '✅ Operational' : '🔧 Maintenance'}
+              </button>
             </div>
             <div className="quantity-controls">
               <label>Quantity: {item.quantity}</label>
@@ -425,23 +525,10 @@ const DiagnosticsTimeline = () => {
 
 // Mission Page Component
 const MissionPage = () => {
-  const earthRotation = useScrollRotation();
-
   return (
     <div className="mission-page">
-      {/* Hero Section with Earth */}
+      {/* Hero Section */}
       <section className="hero-section">
-        <div className="stars"></div>
-        <div 
-          className="earth-rotation"
-          style={{ transform: `rotate(${earthRotation}deg)` }}
-        >
-          <img 
-            src="https://images.unsplash.com/photo-1564053489984-317bbd824340?w=800&h=800&fit=crop" 
-            alt="Earth from space"
-            className="earth-image"
-          />
-        </div>
         <div className="hero-content">
           <motion.h1
             initial={{ opacity: 0, y: 50 }}
@@ -711,9 +798,17 @@ const ContactPage = () => {
 function App() {
   const [showSettings, setShowSettings] = useState(false);
   const [currentSection, setCurrentSection] = useState('mission');
+  const { isDarkMode } = useStore();
+
+  useEffect(() => {
+    document.body.className = isDarkMode ? 'dark-mode' : 'light-mode';
+  }, [isDarkMode]);
 
   return (
     <div className="App">
+      {/* Parallax Background */}
+      <ParallaxBackground />
+      
       {/* Navigation */}
       <nav className="navigation">
         <div className="nav-brand">AR Object Spotter</div>
@@ -733,6 +828,7 @@ function App() {
           <button onClick={() => setCurrentSection('contact')} className={currentSection === 'contact' ? 'active' : ''}>
             Contact
           </button>
+          <ThemeToggle />
           <button onClick={() => setShowSettings(true)}>⚙️</button>
         </div>
       </nav>
