@@ -8,7 +8,6 @@ const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
 // Zustand store for global state
 const useStore = create((set, get) => ({
   isDetecting: false,
-  isDarkMode: true,
   settings: {
     confidence: 0.5,
     resolution: '640x480',
@@ -47,7 +46,6 @@ const useStore = create((set, get) => ({
   ],
   
   setDetecting: (status) => set({ isDetecting: status }),
-  toggleTheme: () => set(state => ({ isDarkMode: !state.isDarkMode })),
   updateSettings: (newSettings) => set(state => ({ settings: { ...state.settings, ...newSettings } })),
   addDetection: (detection) => set(state => ({ 
     detections: [detection, ...state.detections.slice(0, 49)],
@@ -86,23 +84,6 @@ const useParallax = () => {
   }, []);
   
   return scrollY;
-};
-
-// Scroll-based Earth rotation hook
-const useScrollRotation = () => {
-  const [rotation, setRotation] = useState(0);
-  
-  useEffect(() => {
-    const handleScroll = () => {
-      const scrollPercent = window.scrollY / (document.documentElement.scrollHeight - window.innerHeight);
-      setRotation(scrollPercent * 360 * 0.3); // Smooth rotation
-    };
-    
-    window.addEventListener('scroll', handleScroll);
-    return () => window.removeEventListener('scroll', handleScroll);
-  }, []);
-  
-  return rotation;
 };
 
 // Animated Counter Component
@@ -164,25 +145,23 @@ const MetricSlider = ({ label, value, max = 100, color = '#2EFFFF', delay = 0 })
   );
 };
 
-// Theme Toggle Component
-const ThemeToggle = () => {
-  const { isDarkMode, toggleTheme } = useStore();
-  
-  return (
-    <button className="theme-toggle" onClick={toggleTheme}>
-      <div className={`toggle-slider ${isDarkMode ? 'dark' : 'light'}`}>
-        <span className="toggle-icon">
-          {isDarkMode ? '🌙' : '☀️'}
-        </span>
-      </div>
-    </button>
-  );
-};
-
-// Parallax Background Component
+// Parallax Background Component with Earth Rotation
 const ParallaxBackground = () => {
   const scrollY = useParallax();
-  const earthRotation = useScrollRotation();
+  const earthRef = useRef(null);
+  
+  useEffect(() => {
+    const handleScroll = () => {
+      if (earthRef.current) {
+        const scrollPercent = window.scrollY / (document.documentElement.scrollHeight - window.innerHeight);
+        const rotation = scrollPercent * 360 * 0.5; // Adjust rotation speed
+        earthRef.current.style.transform = `rotate(${rotation}deg)`;
+      }
+    };
+    
+    window.addEventListener('scroll', handleScroll);
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
   
   return (
     <div className="parallax-background">
@@ -199,13 +178,11 @@ const ParallaxBackground = () => {
         }}
       >
         <div 
+          ref={earthRef}
           className="earth-rotation"
-          style={{ 
-            transform: `rotate(${earthRotation}deg)` 
-          }}
         >
           <img 
-            src="https://images.unsplash.com/photo-1564053489984-317bbd824340?w=1200&h=1200&fit=crop" 
+            src="https://images.unsplash.com/photo-1564053489984-317bbd824340?w=2000&h=2000&fit=crop" 
             alt="Earth from space"
             className="earth-image"
           />
@@ -798,11 +775,6 @@ const ContactPage = () => {
 function App() {
   const [showSettings, setShowSettings] = useState(false);
   const [currentSection, setCurrentSection] = useState('mission');
-  const { isDarkMode } = useStore();
-
-  useEffect(() => {
-    document.body.className = isDarkMode ? 'dark-mode' : 'light-mode';
-  }, [isDarkMode]);
 
   return (
     <div className="App">
@@ -828,7 +800,6 @@ function App() {
           <button onClick={() => setCurrentSection('contact')} className={currentSection === 'contact' ? 'active' : ''}>
             Contact
           </button>
-          <ThemeToggle />
           <button onClick={() => setShowSettings(true)}>⚙️</button>
         </div>
       </nav>
