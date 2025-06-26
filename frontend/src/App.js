@@ -711,17 +711,17 @@ const ContactPage = () => {
   );
 };
 
-// Main App Component with Simple Background
+// Main App Component with Parallax Earth
 function App() {
   const [showSettings, setShowSettings] = useState(false);
   const [currentSection, setCurrentSection] = useState('mission');
 
-  // Simple scroll-based rotation
+  // Simple parallax movement for Earth
   useEffect(() => {
     const handleScroll = () => {
-      const scrollPercent = window.scrollY / (document.documentElement.scrollHeight - window.innerHeight);
-      const rotation = scrollPercent * 360;
-      document.body.style.setProperty('--earth-rotation', `${rotation}deg`);
+      const scrollY = window.scrollY;
+      const parallaxOffset = scrollY * 0.3; // Slower parallax movement
+      document.body.style.setProperty('--earth-parallax', `${parallaxOffset}px`);
     };
 
     window.addEventListener('scroll', handleScroll);

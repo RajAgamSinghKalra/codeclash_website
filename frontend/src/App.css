@@ -12,12 +12,12 @@ html, body {
   overflow-x: hidden;
 }
 
-/* CSS Variables for Earth rotation */
+/* CSS Variables for Earth parallax */
 :root {
-  --earth-rotation: 0deg;
+  --earth-parallax: 0px;
 }
 
-/* Main background with stars and rotating Earth */
+/* Main background with stars and parallax Earth */
 body {
   background: 
     /* Stars pattern */
@@ -28,33 +28,26 @@ body {
     radial-gradient(2px 2px at 160px 30px, #ddd, transparent),
     /* Nebula background */
     url('https://images.unsplash.com/photo-1606125784258-570fc63c22c1?w=1920&h=1080&fit=crop'),
-    /* Earth background - rotating */
-    url('https://images.unsplash.com/photo-1564053489984-317bbd824340?w=1500&h=1500&fit=crop'),
     /* Final fallback gradient */
     linear-gradient(135deg, #0d0d10 0%, #080808 100%);
   
   background-size: 
     200px 100px,  /* stars pattern size */
     cover,        /* nebula cover */
-    80vmax 80vmax, /* earth size */
     cover;        /* fallback gradient */
   
   background-position: 
     0 0,          /* stars position */
     center,       /* nebula center */
-    center,       /* earth center */
     center;       /* fallback center */
   
   background-repeat: 
     repeat,       /* stars repeat */
     no-repeat,    /* nebula no-repeat */
-    no-repeat,    /* earth no-repeat */
     no-repeat;    /* fallback no-repeat */
   
   background-attachment: fixed;
-  animation: 
-    twinkle 4s ease-in-out infinite alternate,
-    earthRotate 1s linear infinite;
+  animation: twinkle 4s ease-in-out infinite alternate;
 }
 
 /* Animations */
@@ -63,38 +56,18 @@ body {
   100% { opacity: 1; }
 }
 
-@keyframes earthRotate {
-  from { 
-    background-position: 
-      0 0, 
-      center, 
-      center,
-      center;
-    transform: rotate(var(--earth-rotation));
-  }
-  to { 
-    background-position: 
-      0 0, 
-      center, 
-      center,
-      center;
-    transform: rotate(var(--earth-rotation));
-  }
-}
-
-/* Earth rotation using CSS transform */
+/* Large parallax Earth - no circle, bigger size */
 body::before {
   content: '';
   position: fixed;
-  top: 50%;
+  top: 0;
   left: 50%;
-  width: 120vmax;
-  height: 120vmax;
-  background: url('https://images.unsplash.com/photo-1564053489984-317bbd824340?w=2000&h=2000&fit=crop') center/cover no-repeat;
-  border-radius: 50%;
-  transform: translate(-50%, -50%) rotate(var(--earth-rotation));
+  width: 180vmax;
+  height: 180vmax;
+  background: url('https://images.unsplash.com/photo-1564053489984-317bbd824340?w=3000&h=3000&fit=crop') center/cover no-repeat;
+  transform: translateX(-50%) translateY(var(--earth-parallax));
   z-index: -1;
-  opacity: 0.6;
+  opacity: 0.5;
   pointer-events: none;
 }
 
@@ -928,8 +901,8 @@ body::before {
 /* Responsive Design */
 @media (max-width: 1024px) {
   body::before {
-    width: 100vmax;
-    height: 100vmax;
+    width: 160vmax;
+    height: 160vmax;
   }
 }
 
@@ -963,8 +936,8 @@ body::before {
   }
   
   body::before {
-    width: 90vmax;
-    height: 90vmax;
+    width: 140vmax;
+    height: 140vmax;
   }
   
   .info-card {
@@ -1009,8 +982,8 @@ body::before {
   }
   
   body::before {
-    width: 80vmax;
-    height: 80vmax;
+    width: 120vmax;
+    height: 120vmax;
   }
   
   .hero-content {
@@ -1039,7 +1012,7 @@ body::before {
   }
   
   body::before {
-    transform: translate(-50%, -50%) !important;
+    transform: translateX(-50%) !important;
   }
 }
 
