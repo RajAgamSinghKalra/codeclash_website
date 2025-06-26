@@ -73,19 +73,6 @@ const useStore = create((set, get) => ({
   }))
 }));
 
-// Parallax background hook
-const useParallax = () => {
-  const [scrollY, setScrollY] = useState(0);
-  
-  useEffect(() => {
-    const handleScroll = () => setScrollY(window.scrollY);
-    window.addEventListener('scroll', handleScroll);
-    return () => window.removeEventListener('scroll', handleScroll);
-  }, []);
-  
-  return scrollY;
-};
-
 // Animated Counter Component
 const AnimatedCounter = ({ value, duration = 2000 }) => {
   const [count, setCount] = useState(0);
@@ -140,53 +127,6 @@ const MetricSlider = ({ label, value, max = 100, color = '#2EFFFF', delay = 0 })
             boxShadow: `0 0 20px ${color}40`
           }}
         />
-      </div>
-    </div>
-  );
-};
-
-// Parallax Background Component with Earth Rotation
-const ParallaxBackground = () => {
-  const scrollY = useParallax();
-  const earthRef = useRef(null);
-  
-  useEffect(() => {
-    const handleScroll = () => {
-      if (earthRef.current) {
-        const scrollPercent = window.scrollY / (document.documentElement.scrollHeight - window.innerHeight);
-        const rotation = scrollPercent * 360 * 0.5; // Adjust rotation speed
-        earthRef.current.style.transform = `rotate(${rotation}deg)`;
-      }
-    };
-    
-    window.addEventListener('scroll', handleScroll);
-    return () => window.removeEventListener('scroll', handleScroll);
-  }, []);
-  
-  return (
-    <div className="parallax-background">
-      <div 
-        className="stars-layer"
-        style={{ 
-          transform: `translateY(${scrollY * 0.5}px)` 
-        }}
-      />
-      <div 
-        className="earth-container"
-        style={{ 
-          transform: `translateY(${scrollY * 0.3}px)`
-        }}
-      >
-        <div 
-          ref={earthRef}
-          className="earth-rotation"
-        >
-          <img 
-            src="https://images.unsplash.com/photo-1564053489984-317bbd824340?w=2000&h=2000&fit=crop" 
-            alt="Earth from space"
-            className="earth-image"
-          />
-        </div>
       </div>
     </div>
   );
@@ -771,16 +711,25 @@ const ContactPage = () => {
   );
 };
 
-// Main App Component
+// Main App Component with Simple Background
 function App() {
   const [showSettings, setShowSettings] = useState(false);
   const [currentSection, setCurrentSection] = useState('mission');
 
+  // Simple scroll-based rotation
+  useEffect(() => {
+    const handleScroll = () => {
+      const scrollPercent = window.scrollY / (document.documentElement.scrollHeight - window.innerHeight);
+      const rotation = scrollPercent * 360;
+      document.body.style.setProperty('--earth-rotation', `${rotation}deg`);
+    };
+
+    window.addEventListener('scroll', handleScroll);
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
+
   return (
     <div className="App">
-      {/* Parallax Background */}
-      <ParallaxBackground />
-      
       {/* Navigation */}
       <nav className="navigation">
         <div className="nav-brand">AR Object Spotter</div>
